@@ -1,2 +1,2 @@
 # marbles211
-psyc211_final_project
+Final project for psyc211 by Holly Huey, Srihita Rudraraju, and Janna Wennberg. 
