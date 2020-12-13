@@ -1,0 +1,165 @@
+---
+title: "Drawing Numbers"
+author: "Janna Wennberg"
+date: "12/11/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Define functions
+```{r}
+## FUNCTIONS HERE
+
+# Convert musical data to numbers
+replace = function(draws){
+  draws_num = gsub('C', 1, draws)
+  draws_num = gsub('D', 2, draws_num)
+  draws_num = gsub('E', 3, draws_num)
+  draws_num = gsub('F', 4, draws_num)
+  draws_num = gsub('G', 5, draws_num)
+  draws_num = gsub('A', 6, draws_num)
+  draws_num = gsub('B', 7, draws_num)
+  return(draws_num)
+}
+
+get_sequence = function(data, n){
+  out = numeric(n)
+  out[1] = sample(notes, 1, replace=TRUE, prob=NULL) # LATER: sample with the relative frequency of the note
+  for (i in 2:n){
+    out[i] = sample(notes, 1, replace=TRUE, prob=data[out[i-1],])
+  }
+  return(out)
+}
+```
+
+```{r}
+# nursery rhymes
+black_sheep = c('C','C','G','G','A','A','A','A','G',
+                'F','F','E','E','D','D','C',
+          'G','G','G','F','F','E','E','E','D',
+          'G','G','G','F','F','F','F','E','E','E','D',
+          'C','C','G','G','A','A','A','A','G',
+          'F','F','E','E','D','D','C')
+
+bingo = c('G','C','C','C','G','A','A',
+          'G','G','C','C','D','D','E','C',
+          'E','E','F','F','F','D','D',
+          'E','E','E','C','C','D','D','D',
+          'C','B','G','A','B','C','C')
+
+# spans more than an octave (C to C), but song still recognizable
+frere_jaques = c('C','D','E','C',
+                 'C','D','E','C',
+                 'E','F','G',
+                 'E','F','G',
+                 'G','A','G','F','E','C',
+                 'G','A','G','F','E','C',
+                 'C','G','C','C','G','C')
+
+hot_cross_buns = c('E','D','C','E','D','C',
+                   'C','C','C','C',
+                   'D','D','D','D',
+                   'E','D','C')
+
+london_bridge = c('G','A','G','F','E','F','G',
+                  'D','E','F','E','F','G',
+                  'G','A','G','F','E','F','G',
+                  'D','G','E','C')
+
+mary_lamb = c('E','D','C','D','E','E','E',
+              'D','D','D','E','G','G',
+              'E','D','C','D','E','E','E',
+              'E','D','D','E','D','C')
+
+old_macdonald = c('C','C','C','G','A','A','G',
+                  'E','E','D','D','C',
+                  'G','C','C','C','G','A','A','G',
+                  'E','E','D','D','C')
+
+rain_rain_go_away = c('G','E','G','G','E',
+                      'G','G','E','A','G','G','E',
+                      'F','F','D','D','F','F','D',
+                      'G','F','E','D','E','C','C')
+
+this_old_man = c('G','E','G','G','E','G',
+                 'A','G','F','E','D','E','F',
+                 'E','F','G','C','C','C','C',
+                 'C','D','E','F','G',
+                 'G','D','D','F','E','D','C')
+                 
+twinkle_twinkle = c('C','C','G','G','A','A','G',
+                    'F','F','E','E','D','D','C', 
+                    'G','G','F','F','E','E','D', 
+                    'G','G','F','F','E','E','D', 
+                    'C','C','G','G','A','A','G',
+                    'F','F','E','E','D','D','C')
+
+humpty_dumpty = c('C','C','E','E','D','E',
+                  'D','C','E','E','G','G', 
+                  'F','G','F','E','A','A',
+                  'A','G','G','G','F','F',
+                  'F','E','F','F','F','E',
+                  'E','E','D','E','D','C')
+
+# Call "replace" function
+black_sheep = as.numeric(replace(black_sheep))
+bingo = as.numeric(replace(bingo))
+frere_jaques = as.numeric(replace(frere_jaques))
+hot_cross_buns = as.numeric(replace(hot_cross_buns))
+london_bridge = as.numeric(replace(london_bridge))
+mary_lamb = as.numeric(replace(mary_lamb))
+old_macdonald = as.numeric(replace(old_macdonald))
+rain_rain_go_away = as.numeric(replace(rain_rain_go_away))
+this_old_man = as.numeric(replace(this_old_man))
+twinkle_twinkle = as.numeric(replace(twinkle_twinkle))
+humpty_dumpty = as.numeric(replace(humpty_dumpty))
+
+song_list = list(black_sheep,bingo,frere_jaques,hot_cross_buns,london_bridge,mary_lamb,
+            old_macdonald,rain_rain_go_away,this_old_man,twinkle_twinkle,humpty_dumpty)
+
+songs_comb = c(black_sheep,bingo,frere_jaques,hot_cross_buns,london_bridge,mary_lamb,
+            old_macdonald,rain_rain_go_away,this_old_man,twinkle_twinkle,humpty_dumpty)
+```
+
+```{r}
+
+notes = c(1:7)
+tally = matrix(1,length(notes),length(notes))
+
+for (each_song in 1:length(song_list)){
+  for (each_note in 1:length(song_list[[each_song]])){
+    if (each_note!=1){
+      prevNote = song_list[[each_song]][each_note-1]
+      curNote = song_list[[each_song]][each_note]
+      #cat('prevNote:',prevNote,'  curNote:',curNote)
+      tally[prevNote,curNote] = tally[prevNote,curNote]+1
+    }
+  }
+}
+
+tally_df = data.frame(tally)
+for (i in 1:nrow(tally_df)){
+  tally_df[i,] = tally_df[i,]/sum(tally_df[i,])
+}
+
+samples = matrix(0,length(notes),10)
+for (i in 1:nrow(tally_df)){
+  p = tally_df[i,]
+  samples[i,] = sample(notes, 10, replace=TRUE,p)
+}
+
+get_sequence(tally_df,10) # change to mean length of each song
+
+```
+
+# Sequences generated
+1 1 5 4 5 4 3 1 2 1
+
+```{r}
+
+
+```
