@@ -1,0 +1,488 @@
+---
+title: 'PSYC 211: Final Project'
+author: "Holly Huey, Srihita Rudraraju, Janna Wennberg"
+date: "12/14/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+# Setup, load required packages
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(viridis)
+
+# Create colorspace from viridis
+colorspace = viridis(6)
+
+# Set seed
+set.seed(211)
+```
+
+## Define functions
+```{r}
+# replace: a function that converts musical data to numbers
+# takes in a vector of letters as inputs
+# 'O' denotes the C that is an octave up from C
+replace = function(draws){
+  draws_num = gsub('C', 1, draws)
+  draws_num = gsub('D', 2, draws_num)
+  draws_num = gsub('E', 3, draws_num)
+  draws_num = gsub('F', 4, draws_num)
+  draws_num = gsub('G', 5, draws_num)
+  draws_num = gsub('A', 6, draws_num)
+  draws_num = gsub('B', 7, draws_num)
+  draws_num = gsub('O', 8, draws_num)
+  return(draws_num)
+}
+
+# get_sequence: a function that generates a sequence of musical notes from a transition matrix
+# takes in the transition matrix (data), song length (n), and the probabilities for choosing the starting note
+get_sequence = function(data, n, starting_prob){
+  out = numeric(n)
+  out[1] = sample(notes, 1, replace=TRUE, prob=starting_prob) # Change to NULL to have it be truly uniform sampling
+  for (i in 2:n){
+    out[i] = sample(notes, 1, replace=TRUE, prob=data[out[i-1],])
+  }
+  return(out)
+}
+
+```
+
+## Load and clean data
+```{r}
+# Nursery rhymes are presented below in alphabetical order
+abc = as.numeric(replace(c("C", "C", "G", "G", "A", "A", "G", "F", "F", "E", "E", "D", "D", "C",
+        "G", "G", "F", "E", "E", "D", "G", "G", "F", "E", "E", "D",
+        "C", "C", "G", "G", "A", "A", "G", "F", "F", "E", "E", "D", "D", "C")))
+
+away_in_a_manger = as.numeric(replace(c("C", "F", "F", "G", "A", "F", "F", "A", "C", "C", "C",
+                     "D", "G", "A", "B", "B", "C", "A", "A", "F", "A", "G", "D", "F",
+                     "A", "C", "F", "F", "G", "A", "F", "F", "A", "C", "C",
+                     "D", "B", "G", "A", "B", "B", "C", "A", "A", "F", "A", "G", "D", "A", "F")))
+
+black_sheep = as.numeric(replace(c('C','C','G','G','A','A','A','A','G',
+                'F','F','E','E','D','D','C',
+          'G','G','G','F','F','E','E','E','D',
+          'G','G','G','F','F','F','F','E','E','E','D',
+          'C','C','G','G','A','A','A','A','G',
+          'F','F','E','E','D','D','C')))
+
+bingo = as.numeric(replace(c('G','C','C','C','G','A','A',
+          'G','G','C','C','D','D','E','C',
+          'E','E','F','F','F','D','D',
+          'E','E','E','C','C','D','D','D',
+          'C','B','G','A','B','C','C')))
+
+fails_do_do = as.numeric(replace(c("B", "A", "G", "G", "A", "G", "A", "B", "G", "B", "A", "G", "G", "A", "G", "A", "B", "G")))
+
+flintstones = as.numeric(replace(c("G", "C", "O", "A", "G", "C", "G", "F", "E", "E", "F", "G", "C", "D", "E",
+                "G", "C", "O", "A", "G", "C", "G", "F", "E", "E", "F", "G", "C", "D", "E",
+                "B", "E", "O", "B", "B", "A", "A", "B", "A", "A", "D", "B", "A", "A", "G", "G", "A", "G",
+                "G", "C", "O", "A", "G", "C", "G", "F", "E", "E", "F", "G", "C", "D", "E", "F", "G", "C", "D", "E", "F", "G", "O", "O")))
+
+frere_jaques = as.numeric(replace(c('C','D','E','C',
+                 'C','D','E','C',
+                 'E','F','G',
+                 'E','F','G',
+                 'G','A','G','F','E','C',
+                 'G','A','G','F','E','C',
+                 'C','G','C','C','G','C')))
+
+hey_diddle_diddle = as.numeric(replace(c("E", "E", "E", "E", "F", "G", "D", "D", "D", "D", "C", "D", "E", "E",
+                      "E", "E", "F", "G", "D", "E", "F", "F", "F", "F", "G", "A", "G", "E",
+                      "C", "D", "E", "G", "G", "G", "G", "A", "B", "O")))
+
+hickory_dickory = as.numeric(replace(c("E", "F", "G", "F", "E", "D", "E", "E", "E", "G", "F", "D", "E", "E",
+                  "E", "E", "G", "G", "F", "F", "A", "G", "A", "G", "F", "E", "D", "C")))
+
+hot_cross_buns = as.numeric(replace(c('E','D','C','E','D','C',
+                   'C','C','C','C',
+                   'D','D','D','D',
+                   'E','D','C')))
+
+humpty_dumpty = as.numeric(replace(c('C','C','E','E','D','E',
+                  'D','C','E','E','G','G', 
+                  'F','G','F','E','A','A',
+                  'A','G','G','G','F','F',
+                  'F','E','F','F','F','E',
+                  'E','E','D','E','D','C')))
+
+i_love_you_barney = as.numeric(replace(c("G", "E", "G", "G", "E", "G", "A", "G", "F", "E", "D", "E", "F",
+                      "E", "F", "G", "C", "C", "C", "C", "C", "D", "E", "F", "G",
+                      "G", "D", "D", "F", "E", "D", "C", "G", "E", "G", "G", "E", "G",
+                      "A", "G", "F", "E", "D", "E", "F", "E", "F", "G", "C", "C", "C",
+                      "C", "C", "D", "E", "F", "G", "G", "D", "D", "F", "E", "D", "C")))
+
+im_a_little_teapot = as.numeric(replace(c("C", "D", "E", "F", "G", "O", "A", "O", "G", "F", "F", "F", "E", "E",
+                       "D", "D", "D", "C", "C", "D", "E", "F", "G", "O", "A", "O", "G", "O",
+                       "A", "G", "G", "F", "E", "D", "C")))
+
+itsy_bitsy_spider = as.numeric(replace(c("G", "C", "C", "C", "D", "E", "E",
+                      "E", "D", "C", "D", "E", "C", "E", "E", "F", "G",
+                      "G", "F", "E", "F", "G", "E", "C", "C", "D", "E",
+                      "E", "D", "C", "D", "E", "C", "G", "G", "C", "C",
+                      "C", "D", "E", "E", "E", "D", "C", "D", "E", "C")))
+
+jingle_bells = as.numeric(replace(c("E", "E", "E", "E", "E", "E", "E", "G", "C", "D", "E", "F", "F",
+                 "F", "F", "F", "E", "E", "E", "E", "D", "D", "E", "D", "G")))
+
+london_bridge = as.numeric(replace(c('G','A','G','F','E','F','G',
+                  'D','E','F','E','F','G',
+                  'G','A','G','F','E','F','G',
+                  'D','G','E','C')))
+
+londons_burning = as.numeric(replace(c("C", "C", "F", "F", "C", "C", "F", "F", "G", "G", "A", "A",
+                    "G", "G", "A", "A", "C", "C", "C", "C", "C", "B", "A", "A", "C", "B", "A", "A")))
+
+los_pollitos_dicen = as.numeric(replace(c("C", "D", "E", "F", "G", "G", "A", "A", "A", "A", "G", "G",
+                       "F", "F", "F", "G", "E", "E", "D", "D", "D", "E", "C", "C")))
+
+mary_lamb = as.numeric(replace(c('E','D','C','D','E','E','E',
+              'D','D','D','E','G','G',
+              'E','D','C','D','E','E','E',
+              'E','D','D','E','D','C')))
+
+ode_to_joy = as.numeric(replace(c("E", "E", "F", "G", "G", "F", "E", "D", "C", "C", "D", "E", "E", "D", "D",
+               "E", "E", "F", "G", "G", "F", "E", "D", "C", "C", "D", "E", "D", "C", "C",
+               "D", "D", "E", "C", "D", "E", "F", "E", "C", "D", "E", "F", "E", "D", "C", "D", "G",
+               "E", "E", "F", "G", "G", "F", "E", "D", "C", "C", "D", "E", "E", "D", "D")))
+
+old_macdonald = as.numeric(replace(c('C','C','C','G','A','A','G',
+                  'E','E','D','D','C',
+                  'G','C','C','C','G','A','A','G',
+                  'E','E','D','D','C')))
+
+rain_rain_go_away = as.numeric(replace(c('G','E','G','G','E',
+                      'G','G','E','A','G','G','E',
+                      'F','F','D','D','F','F','D',
+                      'G','F','E','D','E','C','C')))
+
+ring_around_the_rosie = as.numeric(replace(c("G", "G", "E", "A", "G", "E", "F", "G", "G", "G", "E",
+                          "A", "G", "E", "F", "D", "F", "D", "E", "G", "E", "C")))
+
+row_your_boat = as.numeric(replace(c("C", "C", "C", "D", "E", "E", "D", "E", "F", "G", "O", "O",
+                  "O", "G", "G", "G", "E", "E", "E", "C", "C", "C", "G", "F", "E", "D", "C")))
+
+this_old_man = as.numeric(replace(c('G','E','G','G','E','G',
+                 'A','G','F','E','D','E','F',
+                 'E','F','G','C','C','C','C',
+                 'C','D','E','F','G',
+                 'G','D','D','F','E','D','C')))
+
+three_blind_mice = as.numeric(replace(c("E", "D", "C", "E", "D", "C", "G", "F", "F", "E", "G", "F", "F",
+                     "E", "G", "O", "O", "B", "A", "B", "O", "G", "G", "G", "O",
+                     "O", "O", "B", "A", "B", "O", "G", "G", "G", "G", "O", "O",
+                     "B", "A", "B", "O", "G", "G", "G", "G", "E", "D", "C")))
+                 
+twinkle_twinkle = as.numeric(replace(c('C','C','G','G','A','A','G',
+                    'F','F','E','E','D','D','C', 
+                    'G','G','F','F','E','E','D', 
+                    'G','G','F','F','E','E','D', 
+                    'C','C','G','G','A','A','G',
+                    'F','F','E','E','D','D','C')))
+
+wheels_on_the_bus = as.numeric(replace(c("C", "F", "F", "F", "F", "A", "O", "A", "F", "G", "E", "C",
+                      "A", "G", "F", "C", "F", "F", "F", "F", "A", "O", "A", "F", "G", "C", "C", "F")))
+
+yankee_doodle = as.numeric(replace(c("C", "C", "D", "E", "C", "E", "D", "G", "C", "C", "D", "E", "C", "B",
+                  "G", "C", "C", "D", "E", "F", "E", "D", "C", "B", "G", "A", "B", "C",
+                  "C", "A", "B", "A", "G", "A", "B", "C", "G", "A", "G", "F", "E", "G",
+                  "A", "B", "A", "G", "A", "B", "C", "A", "G", "C", "B", "D", "C", "C")))
+
+
+
+# Create a list with the vectors loaded above
+# CHECK: make sure all songs are present in this list
+song_list = list(abc,away_in_a_manger,black_sheep,bingo,fails_do_do,flintstones,
+                 frere_jaques,hey_diddle_diddle,hickory_dickory,hot_cross_buns,
+                 humpty_dumpty,i_love_you_barney,im_a_little_teapot,itsy_bitsy_spider,
+                 jingle_bells,london_bridge,londons_burning,los_pollitos_dicen,mary_lamb,
+                 ode_to_joy,old_macdonald,rain_rain_go_away,ring_around_the_rosie,row_your_boat,
+                 this_old_man,three_blind_mice,twinkle_twinkle,wheels_on_the_bus,yankee_doodle)
+
+# Combine all vectors
+# This combined vector will be used in two places: first to check the total number notes,
+# and second to get the relative frequency of each note, which was used to determine
+# the starting note in each song.
+songs_comb = c(abc,away_in_a_manger,black_sheep,bingo,fails_do_do,flintstones,
+                 frere_jaques,hey_diddle_diddle,hickory_dickory,hot_cross_buns,
+                 humpty_dumpty,i_love_you_barney,im_a_little_teapot,itsy_bitsy_spider,
+                 jingle_bells,london_bridge,londons_burning,los_pollitos_dicen,mary_lamb,
+                 ode_to_joy,old_macdonald,rain_rain_go_away,ring_around_the_rosie,row_your_boat,
+                 this_old_man,three_blind_mice,twinkle_twinkle,wheels_on_the_bus,yankee_doodle)
+
+# Remove individual songs for housekeeping purposes
+rm(abc,away_in_a_manger,black_sheep,bingo,fails_do_do,flintstones,
+   frere_jaques,hey_diddle_diddle,hickory_dickory,hot_cross_buns,
+   humpty_dumpty,i_love_you_barney,im_a_little_teapot,itsy_bitsy_spider,
+   jingle_bells,london_bridge,londons_burning,los_pollitos_dicen,mary_lamb,
+   ode_to_joy,old_macdonald,rain_rain_go_away,ring_around_the_rosie,row_your_boat,
+   this_old_man,three_blind_mice,twinkle_twinkle,wheels_on_the_bus,yankee_doodle)
+
+```
+
+# Modeling
+## Create transition matrix using nursery rhymes above
+```{r}
+# Create transition matrix
+notes = c(1:8)
+tally = matrix(1,length(notes),length(notes))
+
+for (i in 1:length(song_list)){
+  for (j in 1:length(song_list[[i]])){
+    if (j!=1){
+      prevNote = song_list[[i]][j-1]
+      curNote = song_list[[i]][j]
+      tally[prevNote,curNote] = tally[prevNote,curNote]+1
+    }
+  }
+}
+
+# Normalize transition matrix
+transition_mat = data.frame(tally)
+for (i in 1:nrow(tally)){
+  transition_mat[i,] = transition_mat[i,]/sum(transition_mat[i,])
+}
+```
+
+## Generate songs using the transition matrix generated above
+```{r}
+# Calculate mean length of each nursery rhyme
+song_lengths = lengths(song_list)
+median_song_length = median(song_lengths)
+
+# Calculate relative frequency overall
+# These probabilities will be used to determine the starting note
+starting_prob_unnorm = tabulate(songs_comb)
+starting_prob_vals = starting_prob_unnorm / sum(starting_prob_unnorm)
+
+# Generate 100 songs
+n_songs = 100
+generated_songs = matrix(0,nrow=median_song_length,ncol=n_songs)
+generated_songs = data.frame(generated_songs)
+for (i in 1:n_songs){
+  generated_songs[,i] = get_sequence(transition_mat,median_song_length,starting_prob_vals)
+}
+
+# Now make transition matrix for generated songs
+tally_gen = matrix(1,length(notes),length(notes))
+for (i in 1:ncol(generated_songs)){
+  for (j in 1:nrow(generated_songs)){
+    if (j!=1){
+      prevNote = generated_songs[i,j-1]
+      curNote = generated_songs[i,j]
+      tally_gen[prevNote,curNote] = tally_gen[prevNote,curNote]+1
+    }
+  }
+}
+
+# Normalize transition matrix for generated songs
+transition_mat_gen = data.frame(tally_gen)
+for (i in 1:nrow(tally_gen)){
+  transition_mat_gen[i,] = transition_mat_gen[i,]/sum(transition_mat_gen[i,])
+}
+```
+
+# Inference
+## Get a null set of songs
+```{r}
+# Generate null set of songs by shuffling rows of the matrix
+null_songs = matrix(0,nrow=median_song_length,ncol=n_songs)
+null_songs = data.frame(null_songs)
+for (i in 1:n_songs){
+  null_songs[,i] = sample(notes,median_song_length,replace=TRUE)
+}
+
+# Now make transition matrix for null songs
+null_tally_gen = matrix(1,length(notes),length(notes))
+for (i in 1:ncol(null_songs)){
+  for (j in 1:nrow(null_songs)){
+    if (j!=1){
+      prevNote = null_songs[i,j-1]
+      curNote = null_songs[i,j]
+      null_tally_gen[prevNote,curNote] = null_tally_gen[prevNote,curNote]+1
+    }
+  }
+}
+
+# Normalize transition matrix for null songs
+null_transition_mat_gen = data.frame(null_tally_gen)
+for (i in 1:nrow(tally_gen)){
+  null_transition_mat_gen[i,] = null_transition_mat_gen[i,]/sum(null_transition_mat_gen[i,])
+}
+```
+
+## Pitch Proximity Principle
+### Get pitch proximities for generated songs and null songs
+```{r}
+# Calculate distance jumps in generated songs
+distances = matrix(0,nrow=(median_song_length-1),ncol=n_songs)
+distances = data.frame(distances)
+for (i in 1:ncol(distances)){
+  for (j in 1:nrow(distances)){
+    distances[j,i] = generated_songs[j+1,i]-generated_songs[j,i]
+  }
+}
+
+# Now do the same for null songs
+null_distances = matrix(0,nrow=(median_song_length-1),ncol=n_songs)
+null_distances = data.frame(null_distances)
+for (i in 1:ncol(null_distances)){
+  for (j in 1:nrow(null_distances)){
+    null_distances[j,i] = null_songs[j+1,i]-null_songs[j,i]
+  }
+}
+
+# Get a list of combined distances for both null and generated songs
+distances_unlisted = unname(unlist(distances))
+null_distances_unlisted = unname(unlist(null_distances))
+distances_comb = data.frame(cbind(distances_unlisted,null_distances_unlisted))
+colnames(distances_comb) = c("distance","distance_null")
+```
+
+### Do a hypothesis test
+Results:
+$F = 0.350$, $df = 3099, 3099$, $p < 2.2 \times 10^{-16}$, $conf = [0,0.371]$
+Ratio of variances = 0.350
+```{r}
+# Test for pitch proximity principle
+# var.test performs an F test to compare the variances of two samples from normal populations
+var.test(distances_comb$distance,distances_comb$distance_null, ratio=1, alternative="less")
+
+```
+
+## Key Profile
+### Code data as consonant or disonant
+```{r}
+# CONSONANCE
+# Get a list of what the consonant bigrams are
+cons = list(c(1,3), c(3,5), c(1,5), c(1,8),
+            c(3,1), c(5,3), c(5,1), c(8,1))
+
+# Use tally to determine the number of consonant transitions for generated songs
+cons_indiv = c()
+null_cons_indiv = c()
+for (i in 1:length(cons)){
+  cons_indiv[i] = tally_gen[cons[[i]][1], cons[[i]][2]] 
+  null_cons_indiv[i] = null_tally_gen[cons[[i]][1], cons[[i]][2]]
+}
+n_cons = sum(cons_indiv)
+total_bigrams = sum(tally_gen)
+prop_cons = n_cons/total_bigrams
+
+null_n_cons = sum(null_cons_indiv)
+null_prop_cons = null_n_cons/total_bigrams
+
+# DEVIL'S TRIAD (IV-VII)
+# Use tally to determine the number of Devil's Triads for generated songs
+n_dts = tally_gen[4,7]
+null_n_dts = null_tally_gen[4,7]
+```
+
+### Do hypothesis tests
+Results for consonance:
+$\chi^2 = 19.51$, $df = 1$, $p = 5\times10^{-6}$
+Prop 1 = 0.211, Prop 2 = 0.137
+
+Results for Devil's Triad:
+$\chi^2 = 11.25$, $df = 1$, $p = 0.0004$
+Prop 1 = 0.0028, Prop 2 = 0.0189
+```{r}
+# Do a t-test to determine if a difference in proportion of consonant bigrams
+prop.test(x=c(n_cons,null_n_cons),
+          n=c(total_bigrams,total_bigrams),
+          alternative=c("greater"))
+
+# Do a t-test to determine if a difference in proportion of Devil's Triads
+prop.test(x=c(n_dts,null_n_dts),
+          n=c(total_bigrams,total_bigrams),
+          alternative=c("less"))
+```
+
+# Plots
+## Stacked bar chart
+```{r}
+# Stacked bar chart for generated songs
+transition_mat_gen_long = expand.grid(c("C","D","E","F","G","A","B","High-C"),
+                                      c("C","D","E","F","G","A","B","High-C"))
+transition_mat_gen_long <- transition_mat_gen_long[ , c("Var2","Var1")]
+colnames(transition_mat_gen_long) = c("startNote","nextNote")
+for (i in 1:length(notes)){
+  for (j in 1:length(notes)){
+    transition_mat_gen_long$prob[length(notes)*(i-1)+j] = transition_mat_gen[i,j]
+  }
+}
+
+transition_mat_gen_long %>%
+  ggplot(aes(fill=nextNote,y=prob,x=startNote)) + 
+  geom_bar(position="fill",stat="identity") +
+  scale_fill_viridis(name="Next Note", discrete=TRUE)+
+  xlab("Starting Note") + 
+  ylab("Proportion")+
+  theme_minimal()
+ggsave("stacked_bar_chart.png")
+```
+
+## Distance histogram
+```{r}
+distances_comb %>%
+  ggplot(aes(x=distance))+
+  geom_histogram(binwidth=1,color="black",fill=colorspace[3])+
+  theme_minimal()+
+  theme(
+    panel.grid.minor.y = element_blank()
+  )+
+  xlab("Distance")+
+  ylab("Count")
+ggsave("dist_hist.png")
+
+# CHECK: the null histogram looks weirdly lopsided? won't change the major results but want to make sure...
+# I think it's just a sampling thing...
+distances_comb %>%
+  ggplot(aes(x=distance_null))+
+  geom_histogram(binwidth=1,color="black",fill=colorspace[3])+
+  theme_minimal()+
+  theme(
+    panel.grid.minor.y = element_blank()
+  )+
+  xlab("Distance")+
+  ylab("Count")
+```
+
+# Save out datasets
+```{r}
+# Save out original transition matrix
+save(tally,file="saved_files/tally.Rda")
+save(transition_mat,file="saved_files/transition_mat.Rda")
+write.csv(transition_mat,file="saved_files/transition_mat.csv")
+
+# Save generated songs and write to CSV
+save(generated_songs,file="saved_files/generated_songs.Rda")
+write.csv(generated_songs,file="saved_files/generated_songs.csv")
+
+# Save transition matrix for generated songs
+save(tally_gen,file="saved_files/tally_gen.Rda")
+save(transition_mat_gen,file="saved_files/transition_mat_gen.Rda")
+write.csv(transition_mat_gen,file="saved_files/transition_mat_gen.csv")
+
+# Save null songs
+save(null_songs,file="saved_files/null_songs.Rda")
+write.csv(null_songs,file="saved_files/null_songs.csv")
+
+# Save transition matrix for null songs
+save(null_tally_gen,file="saved_files/null_tally_gen.Rda")
+save(null_transition_mat_gen,file="saved_files/null_transition_mat_gen.Rda")
+write.csv(null_transition_mat_gen,file="saved_files/null_transition_mat_gen.csv")
+
+# Save distances
+save(distances,file="saved_files/distances.Rda")
+write.csv(distances,file="saved_files/distances.csv")
+save(null_distances,file="saved_files/null_distances.Rda")
+write.csv(null_distances,file="saved_files/null_distances.csv")
+save(distances_comb,file="saved_files/distances_comb.Rda")
+write.csv(distances_comb,file="saved_files/distances_comb.csv")
+```
+
+
+
+
